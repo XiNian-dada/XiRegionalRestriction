@@ -1,0 +1,4 @@
+name: XiRegionalRestriction
+version: '${project.version}'
+main: cn.hairuosky.xiregionalrestriction.XiRegionalRestriction
+api-version: '1.16'
