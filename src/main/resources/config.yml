@@ -1,0 +1,4 @@
+# XiRegionalRestriction 插件全局配置
+
+# 是否启用区域限制
+region-enable: true

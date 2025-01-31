@@ -1,0 +1,8 @@
+# XiRegionalRestriction 插件消息配置
+
+# 当玩家进入受限区域时的提示消息
+region-enter-restricted: "你进入了一个受限区域！"
+region-leave-restricted: "你离开了受限区域！"
+region-break-restricted: "你不能在此区域破坏方块！"
+region-place-restricted: "你不能在此区域放置方块！"
+region-use-restricted: "你不能在此区域使用此物品！"

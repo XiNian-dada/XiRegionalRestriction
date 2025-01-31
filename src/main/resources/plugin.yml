@@ -2,3 +2,9 @@ name: XiRegionalRestriction
 version: '${project.version}'
 main: cn.hairuosky.xiregionalrestriction.XiRegionalRestriction
 api-version: '1.16'
+commands:
+  xiregionalrestriction:
+    permission: xiregionalrestriction.command
+    permission-message: '&c你没有权限执行此命令'
+    aliases:
+      - xrr

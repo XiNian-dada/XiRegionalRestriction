@@ -1,0 +1,10 @@
+name: "defaultRegion"
+world: "world"
+min-x: 0
+max-x: 100
+min-z: 0
+max-z: 100
+allow-player-action:
+  break-blocks: true
+  place-blocks: true
+  use-items: true
