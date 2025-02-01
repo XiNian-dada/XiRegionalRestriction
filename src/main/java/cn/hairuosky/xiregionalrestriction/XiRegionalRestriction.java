@@ -71,7 +71,10 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
             }
         }
     }
-
+    // 获取所有区域（供其他类使用）
+    public List<Region> getRegions() {
+        return regions;
+    }
 
     // 获取消息
     public String getMessage(String key) {
@@ -80,8 +83,5 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
 
 
 
-    // 获取所有区域（供其他类使用）
-    public List<Region> getRegions() {
-        return regions;
-    }
+
 }

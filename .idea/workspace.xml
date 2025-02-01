@@ -4,16 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="42198573-5ceb-4422-955f-d9b6faa9bac8" name="变更" comment="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制">
-      <change afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/Region.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionCommandExecutor.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/config.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/example_region.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/messages.yml" afterDir="false" />
+    <list default="true" id="42198573-5ceb-4422-955f-d9b6faa9bac8" name="变更" comment="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制- 实现区域限制功能，包括创建区域、检测玩家位置等- 添加消息配置和国际化支持">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/XiRegionalRestriction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/XiRegionalRestriction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/plugin.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/plugin.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,21 +33,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "project.structure.last.edited": "工件",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.2",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;工件&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="XiRegionalRestriction package" type="MavenRunConfiguration" factoryName="Maven">
       <MavenSettings>
@@ -90,7 +84,9 @@
       <option name="presentableId" value="Default" />
       <updated>1737983555535</updated>
       <workItem from="1737983556832" duration="8000" />
-      <workItem from="1738334049707" duration="4561000" />
+      <workItem from="1738334049707" duration="5295000" />
+      <workItem from="1738396536706" duration="78000" />
+      <workItem from="1738424836490" duration="1055000" />
     </task>
     <task id="LOCAL-00001" summary="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制">
       <created>1738334348092</created>
@@ -106,7 +102,14 @@
       <option name="project" value="LOCAL" />
       <updated>1738334367647</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制- 实现区域限制功能，包括创建区域、检测玩家位置等- 添加消息配置和国际化支持">
+      <created>1738338751879</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1738338751879</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -114,6 +117,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制" />
+    <MESSAGE value="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制- 实现区域限制功能，包括创建区域、检测玩家位置等- 添加消息配置和国际化支持" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制- 实现区域限制功能，包括创建区域、检测玩家位置等- 添加消息配置和国际化支持" />
   </component>
 </project>
