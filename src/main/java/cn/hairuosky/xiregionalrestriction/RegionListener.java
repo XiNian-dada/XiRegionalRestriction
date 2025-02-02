@@ -4,6 +4,8 @@ import org.bukkit.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.entity.Player;
@@ -16,7 +18,7 @@ import java.util.Map;
 public class RegionListener implements Listener {
 
     private final XiRegionalRestriction plugin;
-    private final Map<Player, Boolean> playerRegionStatus = new HashMap<>();  // 缓存玩家的区域状态
+    private final Map<Player, String> playerRegionStatus = new HashMap<>();  // 缓存玩家的区域状态
     private Map<Player, Location> firstPoints = new HashMap<>();
     private Map<Player, Location> secondPoints = new HashMap<>();
     private int n = 5;
@@ -38,49 +40,49 @@ public class RegionListener implements Listener {
             return;  // 如果位置没变，直接跳过
         }
 
-
         // 获取当前玩家的移动计数器，如果没有计数器则初始化为 0
         int moveCount = playerMoveCounter.getOrDefault(player, 0);
 
         // 如果计数器未达到指定次数n，则跳过区域检查
         if (moveCount < n) {
-            playerMoveCounter.put(player, moveCount + 1);
-            player.sendMessage("移动次数：" + moveCount);
+            playerMoveCounter.put(player, moveCount + 1); // 增加计数器
             return;  // 跳过本次区域检查
         }
 
         // 计数器达到 n 后进行区域检查
-        boolean isInRestrictedRegion = false;
+        String regionName = null;  // 存储玩家所在的受限区域名称
         for (Region region : plugin.getRegions()) {
             if (region.isInside(to)) {
-                isInRestrictedRegion = true;
+                regionName = region.getName();  // 获取所在区域的名字
                 break;  // 一旦找到区域就可以退出循环
             }
         }
 
         // 获取玩家之前的区域状态
-        boolean wasInRestrictedRegion = playerRegionStatus.getOrDefault(player, false);  // 使用缓存
+        String previousRegionName = playerRegionStatus.getOrDefault(player, "0");  // 默认为 "0"，表示不在受限区域
 
         // 如果区域状态发生变化
-        if (isInRestrictedRegion != wasInRestrictedRegion) {
-            if (isInRestrictedRegion) {
-                // 玩家进入受限区域
-                player.sendMessage(plugin.getMessage("region-enter-restricted"));
-                plugin.getLogger().info(player.getName() + " 进入受限区域");
-            } else {
+        if ((regionName == null && !previousRegionName.equals("0")) || (regionName != null && !regionName.equals(previousRegionName))) {
+            if (regionName == null || regionName.equals("0")) {
                 // 玩家离开受限区域
                 player.sendMessage(plugin.getMessage("region-leave-restricted"));
                 plugin.getLogger().info(player.getName() + " 离开受限区域");
+            } else {
+                // 玩家进入受限区域
+                player.sendMessage(plugin.getMessage("region-enter-restricted"));
+                plugin.getLogger().info(player.getName() + " 进入受限区域：" + regionName);
             }
 
-            // 更新缓存状态
-            playerRegionStatus.put(player, isInRestrictedRegion);
+            // 更新缓存状态，存储当前区域名称
+            playerRegionStatus.put(player, regionName != null ? regionName : "0");
         }
 
         // 重置玩家的移动计数器
         playerMoveCounter.put(player, 0);
     }
-    // 用两个 Map 来分别存储第一个点和第二个点
+
+
+
 
 
     @EventHandler
@@ -112,6 +114,41 @@ public class RegionListener implements Listener {
             }
         }
     }
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        Location blockLocation = event.getBlock().getLocation();
+
+
+        // 检查方块是否在受限区域内
+        for (Region region : plugin.getRegions()) {
+            if (region.isInside(blockLocation)) {
+                if (!region.isAllowBreakBlocks()) {
+                    event.setCancelled(true);  // 禁止破坏
+                    player.sendMessage(plugin.getMessage("region-cannot-break"));
+                    return;  // 退出方法，避免进一步处理
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        Player player = event.getPlayer();
+        Location blockLocation = event.getBlock().getLocation();
+
+        // 检查方块是否在受限区域内
+        for (Region region : plugin.getRegions()) {
+            if (region.isInside(blockLocation)) {
+                if (!region.isAllowPlaceBlocks()) {
+                    event.setCancelled(true);  // 禁止放置
+                    player.sendMessage(plugin.getMessage("region-cannot-place"));
+                    return;  // 退出方法，避免进一步处理
+                }
+            }
+        }
+    }
+
 
     public Map<Player, Location> getFirstPoints() {
         return firstPoints;

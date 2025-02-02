@@ -7,15 +7,20 @@ public class Region {
     private final String name;
     private final String worldName;
     private final int minX, maxX, minZ, maxZ;
+    private final boolean allowBreakBlocks;
+    private final boolean allowPlaceBlocks;
+
 
     // 构造方法
-    public Region(String name, String worldName, int minX, int maxX, int minZ, int maxZ) {
+    public Region(String name, String worldName, int minX, int maxX, int minZ, int maxZ, boolean allowBreakBlocks, boolean allowPlaceBlocks) {
         this.name = name;
         this.worldName = worldName;
         this.minX = minX;
         this.maxX = maxX;
         this.minZ = minZ;
         this.maxZ = maxZ;
+        this.allowBreakBlocks = allowBreakBlocks;
+        this.allowPlaceBlocks = allowPlaceBlocks;
     }
 
     // 判断位置是否在区域内
@@ -55,6 +60,13 @@ public class Region {
 
     public int getMaxZ() {
         return maxZ;
+    }
+    public boolean isAllowBreakBlocks() {
+        return allowBreakBlocks;
+    }
+
+    public boolean isAllowPlaceBlocks() {
+        return allowPlaceBlocks;
     }
 
     // 打印区域信息，方便调试

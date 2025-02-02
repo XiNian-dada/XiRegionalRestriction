@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="42198573-5ceb-4422-955f-d9b6faa9bac8" name="变更" comment="feat(region): 优化区域限制功能并添加移动次数检查&#10;&#10;- 使用 HashMap 替代 MetadataValue 存储玩家区域状态，提高效率- 添加移动次数检查，减少频繁触发区域检查&#10;- 优化区域检查逻辑，提高代码可读性和性能&#10;- 移除不必要的日志输出，精简代码">
+    <list default="true" id="42198573-5ceb-4422-955f-d9b6faa9bac8" name="变更" comment="feat(region): 增加通过交互方式创建区域的功能&#10;&#10;- 新增通过左键和右键选择区域两个点的功能&#10;-增加粒子效果显示选定的区域边界&#10;- 优化 /xrr create 命令，支持两种创建区域的方式：&#10;  1. 通过交互选择点后使用命令 /xrr create &lt;区域名称&gt;  2. 手动输入坐标使用命令 /xrr create&lt;区域名称&gt; &lt;min-x&gt;&lt;min-z&gt; &lt;max-x&gt;&lt;max-z&gt; [世界名]&#10;- 改进错误处理和用户提示信息">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/Region.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/Region.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionCommandExecutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionCommandExecutor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/XiRegionalRestriction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/XiRegionalRestriction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/example_region.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/example_region.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +90,7 @@
       <workItem from="1738334049707" duration="5295000" />
       <workItem from="1738396536706" duration="78000" />
       <workItem from="1738424836490" duration="1600000" />
-      <workItem from="1738492162023" duration="2108000" />
+      <workItem from="1738492162023" duration="4049000" />
     </task>
     <task id="LOCAL-00001" summary="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制">
       <created>1738334348092</created>
@@ -118,7 +120,14 @@
       <option name="project" value="LOCAL" />
       <updated>1738426433538</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="feat(region): 增加通过交互方式创建区域的功能&#10;&#10;- 新增通过左键和右键选择区域两个点的功能&#10;-增加粒子效果显示选定的区域边界&#10;- 优化 /xrr create 命令，支持两种创建区域的方式：&#10;  1. 通过交互选择点后使用命令 /xrr create &lt;区域名称&gt;  2. 手动输入坐标使用命令 /xrr create&lt;区域名称&gt; &lt;min-x&gt;&lt;min-z&gt; &lt;max-x&gt;&lt;max-z&gt; [世界名]&#10;- 改进错误处理和用户提示信息">
+      <created>1738494711895</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1738494711895</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -128,6 +137,7 @@
     <MESSAGE value="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制" />
     <MESSAGE value="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制- 实现区域限制功能，包括创建区域、检测玩家位置等- 添加消息配置和国际化支持" />
     <MESSAGE value="feat(region): 优化区域限制功能并添加移动次数检查&#10;&#10;- 使用 HashMap 替代 MetadataValue 存储玩家区域状态，提高效率- 添加移动次数检查，减少频繁触发区域检查&#10;- 优化区域检查逻辑，提高代码可读性和性能&#10;- 移除不必要的日志输出，精简代码" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(region): 优化区域限制功能并添加移动次数检查&#10;&#10;- 使用 HashMap 替代 MetadataValue 存储玩家区域状态，提高效率- 添加移动次数检查，减少频繁触发区域检查&#10;- 优化区域检查逻辑，提高代码可读性和性能&#10;- 移除不必要的日志输出，精简代码" />
+    <MESSAGE value="feat(region): 增加通过交互方式创建区域的功能&#10;&#10;- 新增通过左键和右键选择区域两个点的功能&#10;-增加粒子效果显示选定的区域边界&#10;- 优化 /xrr create 命令，支持两种创建区域的方式：&#10;  1. 通过交互选择点后使用命令 /xrr create &lt;区域名称&gt;  2. 手动输入坐标使用命令 /xrr create&lt;区域名称&gt; &lt;min-x&gt;&lt;min-z&gt; &lt;max-x&gt;&lt;max-z&gt; [世界名]&#10;- 改进错误处理和用户提示信息" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(region): 增加通过交互方式创建区域的功能&#10;&#10;- 新增通过左键和右键选择区域两个点的功能&#10;-增加粒子效果显示选定的区域边界&#10;- 优化 /xrr create 命令，支持两种创建区域的方式：&#10;  1. 通过交互选择点后使用命令 /xrr create &lt;区域名称&gt;  2. 手动输入坐标使用命令 /xrr create&lt;区域名称&gt; &lt;min-x&gt;&lt;min-z&gt; &lt;max-x&gt;&lt;max-z&gt; [世界名]&#10;- 改进错误处理和用户提示信息" />
   </component>
 </project>

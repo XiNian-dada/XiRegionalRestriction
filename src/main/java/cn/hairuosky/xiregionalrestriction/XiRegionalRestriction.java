@@ -67,9 +67,12 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
                 int maxX = config.getInt("max-x");
                 int minZ = config.getInt("min-z");
                 int maxZ = config.getInt("max-z");
+                // 读取 allow-player-action 配置
+                boolean allowBreakBlocks = config.getBoolean("allow-player-action.break-blocks", true);
+                boolean allowPlaceBlocks = config.getBoolean("allow-player-action.place-blocks", true);
 
-                // 创建并保存区域对象（忽略y坐标）
-                Region region = new Region(regionName, worldName, minX, maxX, minZ, maxZ);
+                // 创建并保存区域对象
+                Region region = new Region(regionName, worldName, minX, maxX, minZ, maxZ, allowBreakBlocks, allowPlaceBlocks);
                 regions.add(region);
             }
         }
@@ -77,6 +80,14 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
     // 获取所有区域（供其他类使用）
     public List<Region> getRegions() {
         return regions;
+    }
+    public Region getRegionByName(String regionName) {
+        for (Region region : getRegions()) {
+            if (region.getName().equals(regionName)) {
+                return region;
+            }
+        }
+        return null;
     }
 
     // 获取消息

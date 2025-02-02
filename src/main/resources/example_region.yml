@@ -7,4 +7,4 @@ max-z: 100
 allow-player-action:
   break-blocks: true
   place-blocks: true
-  use-items: true
+
