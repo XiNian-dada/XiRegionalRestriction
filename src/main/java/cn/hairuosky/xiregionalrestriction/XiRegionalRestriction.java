@@ -18,6 +18,7 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
 
     // 存储所有区域的列表
     private List<Region> regions = new ArrayList<>();
+    private RegionListener regionListener;
 
     @Override
     public void onEnable() {
@@ -35,7 +36,9 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
 
         // 加载区域数据
         loadRegions();
-        getServer().getPluginManager().registerEvents(new RegionListener(this), this);
+        // 实例化 RegionListener 并注册事件
+        regionListener = new RegionListener(this);
+        getServer().getPluginManager().registerEvents(regionListener, this);
 
 
         // 注册命令处理器
@@ -80,7 +83,9 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
     public String getMessage(String key) {
         return getConfig().getString("messages." + key, "默认消息: " + key);
     }
-
+    public RegionListener getRegionListener() {
+        return regionListener;
+    }
 
 
 
