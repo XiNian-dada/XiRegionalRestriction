@@ -133,7 +133,7 @@ public class RegionCommandExecutor implements CommandExecutor {
         }
 
         // 加载新的区域到内存
-        Region region = new Region(regionName, worldName, minX, maxX, minZ, maxZ,true,true);
+        Region region = new Region(regionName, worldName, minX, maxX, minZ, maxZ,true,true,true,true,true,true);
         plugin.getRegions().add(region);
     }
 

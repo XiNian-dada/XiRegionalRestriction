@@ -9,7 +9,10 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-
+//TODO 性能审查
+//TODO 功能审查
+//TODO MESSAGES.YML
+//TODO CONFIG.yml
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,16 +70,24 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
                 int maxX = config.getInt("max-x");
                 int minZ = config.getInt("min-z");
                 int maxZ = config.getInt("max-z");
+
                 // 读取 allow-player-action 配置
                 boolean allowBreakBlocks = config.getBoolean("allow-player-action.break-blocks", true);
                 boolean allowPlaceBlocks = config.getBoolean("allow-player-action.place-blocks", true);
+                boolean allowMove = config.getBoolean("allow-player-action.move", true);  // 新增的配置
+                boolean allowInteractEntities = config.getBoolean("allow-player-action.interaction.interact-entities", true);  // 新增的配置
+                boolean allowInteractBlocks = config.getBoolean("allow-player-action.interaction.interact-blocks", true);  // 新增的配置
+                boolean allowInteractItems = config.getBoolean("allow-player-action.interaction.interact-items", true);  // 新增的配置
 
                 // 创建并保存区域对象
-                Region region = new Region(regionName, worldName, minX, maxX, minZ, maxZ, allowBreakBlocks, allowPlaceBlocks);
+                Region region = new Region(regionName, worldName, minX, maxX, minZ, maxZ,
+                        allowBreakBlocks, allowPlaceBlocks, allowMove,
+                        allowInteractEntities, allowInteractBlocks, allowInteractItems);
                 regions.add(region);
             }
         }
     }
+
     // 获取所有区域（供其他类使用）
     public List<Region> getRegions() {
         return regions;

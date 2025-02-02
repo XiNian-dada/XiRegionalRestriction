@@ -7,4 +7,8 @@ max-z: 100
 allow-player-action:
   break-blocks: true
   place-blocks: true
-
+  move: true
+  interaction:
+    interact-entities: true # 禁止与实体交互，如点击按钮、开门等
+    interact-blocks: true   # 禁止与方块交互，如开箱、破坏方块等
+    interact-items: true    # 禁止使用物品，如使用药水、放置物品等
