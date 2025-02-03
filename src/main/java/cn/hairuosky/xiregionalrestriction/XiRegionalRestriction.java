@@ -13,6 +13,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 //TODO 功能审查
 //TODO MESSAGES.YML
 //TODO CONFIG.yml
+//TODO 小的功能BUG，比如开启interaction后，place和break被覆盖
+//TODO TAB COMPLETER 指令
+//TODO PERMISSION
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;

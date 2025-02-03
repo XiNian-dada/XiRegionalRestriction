@@ -16,9 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class RegionListener implements Listener {
 
@@ -37,13 +35,7 @@ public class RegionListener implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        Location from = event.getFrom();  // 获取玩家上次的位置
-        Location to = event.getTo();      // 获取玩家当前的位置
-
-        // 防止玩家位置变化太小导致频繁触发
-        if (from.getBlockX() == to.getBlockX() && from.getBlockY() == to.getBlockY() && from.getBlockZ() == to.getBlockZ()) {
-            return;  // 如果位置没变，直接跳过
-        }
+        Location to = event.getTo();  // 获取玩家当前的位置
 
         // 获取当前玩家的移动计数器，如果没有计数器则初始化为 0
         int moveCount = playerMoveCounter.getOrDefault(player, 0);
@@ -54,8 +46,11 @@ public class RegionListener implements Listener {
             return;  // 跳过本次区域检查
         }
 
-        // 计数器达到 n 后进行区域检查
-        String regionName = null;  // 存储玩家所在的受限区域名称
+        // 重置玩家的移动计数器
+        playerMoveCounter.put(player, 0);
+
+        // 检查玩家是否在受限区域内
+        String regionName = null;
         for (Region region : plugin.getRegions()) {
             if (region.isInside(to)) {
                 regionName = region.getName();  // 获取所在区域的名字
@@ -63,38 +58,25 @@ public class RegionListener implements Listener {
             }
         }
 
-        // 获取玩家之前的区域状态
-        String previousRegionName = playerRegionStatus.getOrDefault(player, "0");  // 默认为 "0"，表示不在受限区域
-
-        // 如果区域状态发生变化
-        if ((regionName == null && !previousRegionName.equals("0")) || (regionName != null && !regionName.equals(previousRegionName))) {
-            if (regionName == null || regionName.equals("0")) {
-                // 玩家离开受限区域
-                player.sendMessage(plugin.getMessage("region-leave-restricted"));
-                plugin.getLogger().info(player.getName() + " 离开受限区域");
-            } else {
-                // 玩家进入受限区域
-                player.sendMessage(plugin.getMessage("region-enter-restricted"));
-                plugin.getLogger().info(player.getName() + " 进入受限区域：" + regionName);
-
-                if (!Objects.requireNonNull(plugin.getRegionByName(regionName)).isAllowMove()) {
-                    // 找到距离玩家最近的安全点并传送
-                    Location safeLocation = findSafeLocationOutsideRegion(player, regionName);
-                    if (safeLocation != null) {
-                        player.teleport(safeLocation);
-                        player.sendMessage(plugin.getMessage("teleported-outside-restricted"));
-                        // 更新玩家状态为不在受限区域
-                        playerRegionStatus.put(player, "0");
-                    }
+        if (regionName != null) {
+            Region region = plugin.getRegionByName(regionName);
+            if (region != null && !region.isAllowMove()) {
+                // 找到距离玩家最近的安全点并传送
+                Location safeLocation = findSafeLocationOutsideRegion(player, regionName);
+                if (safeLocation != null) {
+                    player.teleport(safeLocation);
+                    player.sendMessage(plugin.getMessage("teleported-outside-restricted"));
+                    // 更新玩家状态为不在受限区域
+                    playerRegionStatus.put(player, "0");
                 }
+            } else {
+                // 更新玩家状态为当前区域
+                playerRegionStatus.put(player, regionName);
             }
-
-            // 更新缓存状态，存储当前区域名称
-            playerRegionStatus.put(player, regionName != null ? regionName : "0");
+        } else {
+            // 更新玩家状态为不在受限区域
+            playerRegionStatus.put(player, "0");
         }
-
-        // 重置玩家的移动计数器
-        playerMoveCounter.put(player, 0);
     }
 
     private Location findSafeLocationOutsideRegion(Player player, String regionName) {
@@ -135,25 +117,36 @@ public class RegionListener implements Listener {
         double safeZ = playerZ;
 
         if (playerX < minX) {
-            safeX = minX - 11;  // 往外移动10格
+            safeX = minX - 3;  // 往外移动3格
         } else if (playerX > maxX) {
-            safeX = maxX + 11;  // 往外移动10格
+            safeX = maxX + 3;  // 往外移动3格
         }
 
         if (playerY < minY) {
-            safeY = minY - 11;  // 往外移动10格
+            safeY = minY - 3;  // 往外移动3格
         } else if (playerY > maxY) {
-            safeY = maxY + 11;  // 往外移动10格
+            safeY = maxY + 3;  // 往外移动3格
         }
 
         if (playerZ < minZ) {
-            safeZ = minZ - 11;  // 往外移动10格
+            safeZ = minZ - 3;  // 往外移动3格
         } else if (playerZ > maxZ) {
-            safeZ = maxZ + 11;  // 往外移动10格
+            safeZ = maxZ + 3;  // 往外移动3格
         }
 
         // 创建一个新的安全位置
         Location safeLocation = new Location(currentLocation.getWorld(), safeX, safeY, safeZ);
+
+        // 获取地面高度
+        int groundHeight = safeLocation.getWorld().getHighestBlockYAt(safeLocation.getBlockX(), safeLocation.getBlockZ());
+
+        // 确保 safeY 至少在地面上
+        if (safeY < groundHeight) {
+            safeY = groundHeight;
+        }
+
+        // 更新安全位置的 Y 坐标
+        safeLocation.setY(safeY);
 
         // 确保安全位置不在悬崖或者其他危险区域，并且不在区域内
         int maxAttempts = 10;  // 设置最大尝试次数
@@ -172,6 +165,7 @@ public class RegionListener implements Listener {
 
         return safeLocation;
     }
+
 
     private boolean isInsideRegion(Location location, BoundingBox boundingBox) {
         // 检查位置是否在区域内
@@ -260,19 +254,58 @@ public class RegionListener implements Listener {
     @EventHandler
     public void onPlayerInteractHandler(PlayerInteractEvent event) {
         Player player = event.getPlayer();
+        Block clickedBlock = event.getClickedBlock();
 
-        // 检查玩家与方块的交互
-        if (event.getClickedBlock() != null) {
-            for (Region region : plugin.getRegions()) {
-                if (region.isInside(event.getClickedBlock().getLocation())) {
-                    // 判断配置文件中的方块交互限制
-                    if (!region.isAllowInteractBlocks()) {
-                        event.setCancelled(true);  // 禁止与方块交互
-                        player.sendMessage(plugin.getMessage("region-cannot-interact-block"));
-                    }
+        if (clickedBlock == null) {
+            return;  // 如果没有点击方块，直接返回
+        }
+
+        Material blockType = clickedBlock.getType();
+
+        // 定义需要处理的红石器件和容器类型
+        // 使用 EnumSet 替代 Set.of()
+        Set<Material> INTERACTABLE_MATERIALS = EnumSet.of(
+                Material.STONE_PRESSURE_PLATE, Material.OAK_PRESSURE_PLATE, Material.SPRUCE_PRESSURE_PLATE,
+                Material.BIRCH_PRESSURE_PLATE, Material.JUNGLE_PRESSURE_PLATE, Material.ACACIA_PRESSURE_PLATE,
+                Material.DARK_OAK_PRESSURE_PLATE, Material.CRIMSON_PRESSURE_PLATE, Material.WARPED_PRESSURE_PLATE,
+                Material.HEAVY_WEIGHTED_PRESSURE_PLATE, Material.LIGHT_WEIGHTED_PRESSURE_PLATE,
+                Material.OAK_DOOR, Material.IRON_DOOR, Material.SPRUCE_DOOR, Material.BIRCH_DOOR,
+                Material.JUNGLE_DOOR, Material.ACACIA_DOOR, Material.DARK_OAK_DOOR, Material.CRIMSON_DOOR,
+                Material.WARPED_DOOR, Material.LEVER, Material.STONE_BUTTON, Material.OAK_BUTTON,
+                Material.SPRUCE_BUTTON, Material.BIRCH_BUTTON, Material.JUNGLE_BUTTON, Material.ACACIA_BUTTON,
+                Material.DARK_OAK_BUTTON, Material.CRIMSON_BUTTON, Material.WARPED_BUTTON, Material.REPEATER,
+                Material.COMPARATOR, Material.DAYLIGHT_DETECTOR, Material.HOPPER, Material.DROPPER,
+                Material.DISPENSER, Material.CHEST, Material.TRAPPED_CHEST, Material.BARREL, Material.FURNACE,
+                Material.BLAST_FURNACE, Material.SMOKER, Material.BREWING_STAND, Material.ENCHANTING_TABLE,
+                Material.ANVIL, Material.CHIPPED_ANVIL, Material.DAMAGED_ANVIL, Material.GRINDSTONE,
+                Material.CARTOGRAPHY_TABLE, Material.FLETCHING_TABLE, Material.SMITHING_TABLE, Material.STONECUTTER,
+                Material.LOOM, Material.CAULDRON, Material.BEACON, Material.SHULKER_BOX, Material.BLACK_SHULKER_BOX,
+                Material.BLUE_SHULKER_BOX, Material.BROWN_SHULKER_BOX, Material.CYAN_SHULKER_BOX, Material.GRAY_SHULKER_BOX,
+                Material.GREEN_SHULKER_BOX, Material.LIGHT_BLUE_SHULKER_BOX, Material.LIME_SHULKER_BOX, Material.MAGENTA_SHULKER_BOX,
+                Material.ORANGE_SHULKER_BOX, Material.PINK_SHULKER_BOX, Material.PURPLE_SHULKER_BOX, Material.RED_SHULKER_BOX,
+                Material.WHITE_SHULKER_BOX, Material.YELLOW_SHULKER_BOX
+        );
+
+
+        // 检查点击的方块是否在需要处理的类型中
+        if (!INTERACTABLE_MATERIALS.contains(blockType)) {
+            return;  // 如果不是需要处理的方块类型，直接返回
+        }
+
+        Location blockLocation = clickedBlock.getLocation();
+
+        // 检查玩家是否在限制区域内
+        for (Region region : plugin.getRegions()) {
+            if (region.isInside(blockLocation)) {
+                // 判断配置文件中的方块交互限制
+                if (!region.isAllowInteractBlocks()) {
+                    event.setCancelled(true);  // 禁止与方块交互
+                    player.sendMessage(plugin.getMessage("region-cannot-interact-block"));
+                    return;  // 退出方法，避免进一步处理
                 }
             }
         }
+
         // 检查玩家是否在限制区域内，并判断是否允许使用物品
         for (Region region : plugin.getRegions()) {
             if (region.isInside(player.getLocation())) {
@@ -283,6 +316,8 @@ public class RegionListener implements Listener {
             }
         }
     }
+
+
 
     @EventHandler
     public void onEntityInteractHandler(EntityInteractEvent event) {
