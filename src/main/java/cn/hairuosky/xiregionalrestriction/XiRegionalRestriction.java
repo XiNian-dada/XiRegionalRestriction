@@ -10,7 +10,6 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 //TODO 性能审查
-//TODO 功能审查
 //TODO MESSAGES.YML
 //TODO CONFIG.yml
 //TODO 小的功能BUG，比如开启interaction后，place和break被覆盖

@@ -12,6 +12,7 @@ import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
@@ -31,6 +32,8 @@ public class RegionListener implements Listener {
     }
 
     private Map<Player, Integer> playerMoveCounter = new HashMap<>();  // 用于存储每个玩家的移动次数
+
+    private Map<Player, Location> playerLastSafeLocation = new HashMap<>();  // 用于存储每个玩家上一次的安全位置
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
@@ -61,131 +64,27 @@ public class RegionListener implements Listener {
         if (regionName != null) {
             Region region = plugin.getRegionByName(regionName);
             if (region != null && !region.isAllowMove()) {
-                // 找到距离玩家最近的安全点并传送
-                Location safeLocation = findSafeLocationOutsideRegion(player, regionName);
-                if (safeLocation != null) {
-                    player.teleport(safeLocation);
-                    player.sendMessage(plugin.getMessage("teleported-outside-restricted"));
-                    // 更新玩家状态为不在受限区域
-                    playerRegionStatus.put(player, "0");
-                }
+                // 找到玩家上一次的安全位置并传送
+                Location safeLocation = playerLastSafeLocation.getOrDefault(player, to);
+                // 创建一个新的Location对象，使用上一次的安全位置的坐标，但保留当前的视角方向
+                Location teleportLocation = new Location(safeLocation.getWorld(), safeLocation.getX(), safeLocation.getY(), safeLocation.getZ(), player.getLocation().getYaw(), player.getLocation().getPitch());
+                player.teleport(teleportLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                player.sendMessage(plugin.getMessage("teleported-outside-restricted"));
+                // 更新玩家状态为不在受限区域
+                playerRegionStatus.put(player, "0");
             } else {
                 // 更新玩家状态为当前区域
                 playerRegionStatus.put(player, regionName);
+                // 更新玩家上一次的安全位置
+                playerLastSafeLocation.put(player, to);
             }
         } else {
             // 更新玩家状态为不在受限区域
             playerRegionStatus.put(player, "0");
+            // 更新玩家上一次的安全位置
+            playerLastSafeLocation.put(player, to);
         }
     }
-
-    private Location findSafeLocationOutsideRegion(Player player, String regionName) {
-        // 获取玩家当前的位置
-        Location currentLocation = player.getLocation();
-
-        // 获取区域对象
-        Region region = plugin.getRegionByName(regionName);
-        if (region == null) {
-            return null;  // 如果找不到区域对象，返回 null
-        }
-
-        // 获取区域的边界坐标（假设区域是矩形或者类似形状，你需要根据你的插件实现来调整）
-        BoundingBox boundingBox = region.getBoundingBox();  // 这个假设你有一个BoundingBox类来定义区域
-
-        // 计算玩家当前位置的外部位置，远离区域的边界
-        Location safeLocation = getSafeLocationFromBoundingBox(currentLocation, boundingBox);
-        return safeLocation;
-    }
-
-    private Location getSafeLocationFromBoundingBox(Location currentLocation, BoundingBox boundingBox) {
-        // 获取玩家当前位置的坐标
-        double playerX = currentLocation.getX();
-        double playerY = currentLocation.getY();
-        double playerZ = currentLocation.getZ();
-
-        // 获取区域边界的坐标（假设区域是矩形，返回最小和最大X、Y、Z值）
-        double minX = boundingBox.getMinX();
-        double maxX = boundingBox.getMaxX();
-        double minY = boundingBox.getMinY();
-        double maxY = boundingBox.getMaxY();
-        double minZ = boundingBox.getMinZ();
-        double maxZ = boundingBox.getMaxZ();
-
-        // 计算玩家应该传送到的最近边界位置
-        double safeX = playerX;
-        double safeY = playerY;
-        double safeZ = playerZ;
-
-        if (playerX < minX) {
-            safeX = minX - 3;  // 往外移动3格
-        } else if (playerX > maxX) {
-            safeX = maxX + 3;  // 往外移动3格
-        }
-
-        if (playerY < minY) {
-            safeY = minY - 3;  // 往外移动3格
-        } else if (playerY > maxY) {
-            safeY = maxY + 3;  // 往外移动3格
-        }
-
-        if (playerZ < minZ) {
-            safeZ = minZ - 3;  // 往外移动3格
-        } else if (playerZ > maxZ) {
-            safeZ = maxZ + 3;  // 往外移动3格
-        }
-
-        // 创建一个新的安全位置
-        Location safeLocation = new Location(currentLocation.getWorld(), safeX, safeY, safeZ);
-
-        // 获取地面高度
-        int groundHeight = safeLocation.getWorld().getHighestBlockYAt(safeLocation.getBlockX(), safeLocation.getBlockZ());
-
-        // 确保 safeY 至少在地面上
-        if (safeY < groundHeight) {
-            safeY = groundHeight;
-        }
-
-        // 更新安全位置的 Y 坐标
-        safeLocation.setY(safeY);
-
-        // 确保安全位置不在悬崖或者其他危险区域，并且不在区域内
-        int maxAttempts = 10;  // 设置最大尝试次数
-        int attempts = 0;
-
-        while (isInsideRegion(safeLocation, boundingBox) || !isLocationSafe(safeLocation) && attempts < maxAttempts) {
-            // 如果位置在区域内或不安全，尝试进一步偏移
-            safeLocation = safeLocation.add(5, 0, 5);
-            attempts++;
-        }
-
-        if (isInsideRegion(safeLocation, boundingBox)) {
-            plugin.getLogger().warning("无法找到安全且不在受限区域的位置");
-            return null;  // 如果找不到安全且不在受限区域的位置，返回 null
-        }
-
-        return safeLocation;
-    }
-
-
-    private boolean isInsideRegion(Location location, BoundingBox boundingBox) {
-        // 检查位置是否在区域内
-        double x = location.getX();
-        double y = location.getY();
-        double z = location.getZ();
-
-        return x >= boundingBox.getMinX() && x <= boundingBox.getMaxX() &&
-                y >= boundingBox.getMinY() && y <= boundingBox.getMaxY() &&
-                z >= boundingBox.getMinZ() && z <= boundingBox.getMaxZ();
-    }
-
-
-    private boolean isLocationSafe(Location location) {
-        // 检查该位置是否安全，例如是否有悬崖、熔岩、怪物等
-        Block block = location.getBlock();
-        return block.getType() != Material.LAVA && block.getType() != Material.FIRE && !block.isLiquid();
-    }
-
-
 
 
     @EventHandler
