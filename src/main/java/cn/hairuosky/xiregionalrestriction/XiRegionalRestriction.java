@@ -1,18 +1,12 @@
 package cn.hairuosky.xiregionalrestriction;
 
-import org.bukkit.Location;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 //TODO 性能审查
-//TODO MESSAGES.YML
 //TODO CONFIG.yml
-//TODO 小的功能BUG，比如开启interaction后，place和break被覆盖
 //TODO TAB COMPLETER 指令
 //TODO PERMISSION
 import java.io.File;
@@ -24,7 +18,8 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
     // 存储所有区域的列表
     private List<Region> regions = new ArrayList<>();
     private RegionListener regionListener;
-
+    private YamlConfiguration messagesConfig;
+    public String prefix;
     @Override
     public void onEnable() {
         // 创建 config.yml 配置文件
@@ -32,7 +27,9 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
 
         // 创建 messages.yml 配置文件
         saveResource("messages.yml", false);
-
+        // 加载 messages.yml 文件
+        loadMessages();
+        prefix = ChatColor.translateAlternateColorCodes('&',getConfig().getString("prefix","&7[&6区域限制&7]"));
         // 创建 regions 文件夹，如果不存在则创建
         File regionsFolder = new File(getDataFolder(), "regions");
         if (!regionsFolder.exists()) {
@@ -51,7 +48,21 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
 
         getLogger().info("XiRegionalRestriction 插件已启用！");
     }
+    // 重新加载插件数据
+    public void reload() {
+        // 重新加载 config.yml 文件
+        reloadConfig();
 
+        // 重新加载 messages.yml 文件
+        loadMessages();
+        prefix = ChatColor.translateAlternateColorCodes('&', getConfig().getString("prefix", "&7[&6区域限制&7]"));
+
+        // 清空区域列表并重新加载区域数据
+        regions.clear();
+        loadRegions();
+
+        getLogger().info("XiRegionalRestriction 插件数据已重新加载！");
+    }
     @Override
     public void onDisable() {
         // 插件关闭时的逻辑（如果需要）
@@ -103,9 +114,22 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
         return null;
     }
 
+    // 加载 messages.yml 文件
+    private void loadMessages() {
+        File messagesFile = new File(getDataFolder(), "messages.yml");
+        if (messagesFile.exists()) {
+            messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+        } else {
+            getLogger().warning("messages.yml 文件未找到！");
+        }
+    }
     // 获取消息
-    public String getMessage(String key) {
-        return getConfig().getString("messages." + key, "默认消息: " + key);
+    public String getMessage(String key,String defaultMessage) {
+        if (messagesConfig != null) {
+            return prefix + messagesConfig.getString(key, defaultMessage);
+        } else {
+            return "默认消息: " + key;
+        }
     }
     public RegionListener getRegionListener() {
         return regionListener;

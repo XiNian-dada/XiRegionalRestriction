@@ -4,10 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="42198573-5ceb-4422-955f-d9b6faa9bac8" name="变更" comment="feat(region): 增加区域玩家操作权限控制&#10;&#10;- 在 Region 类中添加 allowMove、allowInteractEntities、allowInteractBlocks 和 allowInteractItems 属性&#10;- 更新 RegionCommandExecutor 以支持新的玩家操作权限设置&#10;- 更新 RegionListener 以处理玩家移动、与实体交互、与方块交互和使用物品等事件&#10;- 在 XiRegionalRestriction 类中添加 getRegionByName 方法&#10;- 更新配置文件格式，支持玩家操作权限设置">
+    <list default="true" id="42198573-5ceb-4422-955f-d9b6faa9bac8" name="变更" comment="refactor(movement): 优化玩家移动事件处理逻辑&#10;&#10;- 移除 findSafeLocationOutsideRegion 和相关辅助方法&#10;- 添加 playerLastSafeLocation Map 来存储玩家上一次的安全位置&#10;- 更新 onPlayerMove 方法，使用 playerLastSafeLocation来传送玩家&#10;- 保留玩家当前的视角方向在传送时- 使用 PlayerTeleportEvent.TeleportCause.PLUGIN 来触发传送">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/Region.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/Region.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionCommandExecutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionCommandExecutor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/RegionListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/XiRegionalRestriction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/hairuosky/xiregionalrestriction/XiRegionalRestriction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/config.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/messages.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/plugin.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/plugin.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +93,10 @@
       <workItem from="1738396536706" duration="78000" />
       <workItem from="1738424836490" duration="1600000" />
       <workItem from="1738492162023" duration="10065000" />
-      <workItem from="1738570194414" duration="1962000" />
+      <workItem from="1738570194414" duration="2816000" />
+      <workItem from="1738674702402" duration="2634000" />
+      <workItem from="1739262104070" duration="3740000" />
+      <workItem from="1739265871056" duration="4547000" />
     </task>
     <task id="LOCAL-00001" summary="feat: 创建 XiRegionalRestriction项目&#10;&#10;- 新增项目配置文件和目录结构&#10;- 添加 Maven构建配置&#10;- 创建插件主类和 plugin.yml 文件&#10;- 设置项目忽略文件和版本控制">
       <created>1738334348092</created>
@@ -139,7 +147,21 @@
       <option name="project" value="LOCAL" />
       <updated>1738505133840</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="refactor(RegionListener): 重构区域监听逻辑&#10;&#10;- 移除了不必要的玩家移动计数器逻辑- 优化了玩家进出受限区域的判断逻辑&#10;- 调整了安全位置的计算方式，确保在地面以上&#10;- 重构了方块交互限制的检查逻辑，使用EnumSet优化性能&#10;- 优化了代码结构，提高了可读性和维护性">
+      <created>1738573124152</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1738573124152</updated>
+    </task>
+    <task id="LOCAL-00009" summary="refactor(movement): 优化玩家移动事件处理逻辑&#10;&#10;- 移除 findSafeLocationOutsideRegion 和相关辅助方法&#10;- 添加 playerLastSafeLocation Map 来存储玩家上一次的安全位置&#10;- 更新 onPlayerMove 方法，使用 playerLastSafeLocation来传送玩家&#10;- 保留玩家当前的视角方向在传送时- 使用 PlayerTeleportEvent.TeleportCause.PLUGIN 来触发传送">
+      <created>1738677096259</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1738677096259</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -152,6 +174,8 @@
     <MESSAGE value="feat(region): 增加通过交互方式创建区域的功能&#10;&#10;- 新增通过左键和右键选择区域两个点的功能&#10;-增加粒子效果显示选定的区域边界&#10;- 优化 /xrr create 命令，支持两种创建区域的方式：&#10;  1. 通过交互选择点后使用命令 /xrr create &lt;区域名称&gt;  2. 手动输入坐标使用命令 /xrr create&lt;区域名称&gt; &lt;min-x&gt;&lt;min-z&gt; &lt;max-x&gt;&lt;max-z&gt; [世界名]&#10;- 改进错误处理和用户提示信息" />
     <MESSAGE value="feat(region): 增加区域方块操作权限控制&#10;&#10;- 在 Region 类中添加 allowBreakBlocks 和 allowPlaceBlocks 属性&#10;- 修改 RegionCommandExecutor 以支持新的方块操作权限设置&#10;- 更新 RegionListener 以处理方块破坏和放置事件&#10;- 在 XiRegionalRestriction 类中添加 getRegionByName 方法&#10;- 更新配置文件格式，支持方块操作权限设置" />
     <MESSAGE value="feat(region): 增加区域玩家操作权限控制&#10;&#10;- 在 Region 类中添加 allowMove、allowInteractEntities、allowInteractBlocks 和 allowInteractItems 属性&#10;- 更新 RegionCommandExecutor 以支持新的玩家操作权限设置&#10;- 更新 RegionListener 以处理玩家移动、与实体交互、与方块交互和使用物品等事件&#10;- 在 XiRegionalRestriction 类中添加 getRegionByName 方法&#10;- 更新配置文件格式，支持玩家操作权限设置" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(region): 增加区域玩家操作权限控制&#10;&#10;- 在 Region 类中添加 allowMove、allowInteractEntities、allowInteractBlocks 和 allowInteractItems 属性&#10;- 更新 RegionCommandExecutor 以支持新的玩家操作权限设置&#10;- 更新 RegionListener 以处理玩家移动、与实体交互、与方块交互和使用物品等事件&#10;- 在 XiRegionalRestriction 类中添加 getRegionByName 方法&#10;- 更新配置文件格式，支持玩家操作权限设置" />
+    <MESSAGE value="refactor(RegionListener): 重构区域监听逻辑&#10;&#10;- 移除了不必要的玩家移动计数器逻辑- 优化了玩家进出受限区域的判断逻辑&#10;- 调整了安全位置的计算方式，确保在地面以上&#10;- 重构了方块交互限制的检查逻辑，使用EnumSet优化性能&#10;- 优化了代码结构，提高了可读性和维护性" />
+    <MESSAGE value="refactor(movement): 优化玩家移动事件处理逻辑&#10;&#10;- 移除 findSafeLocationOutsideRegion 和相关辅助方法&#10;- 添加 playerLastSafeLocation Map 来存储玩家上一次的安全位置&#10;- 更新 onPlayerMove 方法，使用 playerLastSafeLocation来传送玩家&#10;- 保留玩家当前的视角方向在传送时- 使用 PlayerTeleportEvent.TeleportCause.PLUGIN 来触发传送" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor(movement): 优化玩家移动事件处理逻辑&#10;&#10;- 移除 findSafeLocationOutsideRegion 和相关辅助方法&#10;- 添加 playerLastSafeLocation Map 来存储玩家上一次的安全位置&#10;- 更新 onPlayerMove 方法，使用 playerLastSafeLocation来传送玩家&#10;- 保留玩家当前的视角方向在传送时- 使用 PlayerTeleportEvent.TeleportCause.PLUGIN 来触发传送" />
   </component>
 </project>

@@ -2,3 +2,4 @@
 
 # 是否启用区域限制
 region-enable: true
+prefix: "&7[&6区域限制&7]"

@@ -22,74 +22,106 @@ public class RegionCommandExecutor implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         // 只有玩家可以执行该命令
         if (!(sender instanceof Player)) {
-            sender.sendMessage("此命令只能由玩家执行！");
+            sender.sendMessage(plugin.getMessage("only-player-can-do", "只有玩家可以执行此命令！"));
             return false;
         }
 
         Player player = (Player) sender;
 
         // 检查指令参数是否合法
-        if (args.length < 2) {
-            player.sendMessage("用法: /xrr create <区域名称> 或 /xrr create <区域名称> <min-x> <min-z> <max-x> <max-z> [世界名]");
+        if (args.length < 1) {
+            player.sendMessage(plugin.getMessage("command-usage", "用法: /xrr create <区域名称> 或 /xrr create <区域名称> <min-x> <min-z> <max-x> <max-z> [世界名] 或 /xrr reload"));
             return false;
         }
 
-        String regionName = args[1];
+        String subCommand = args[0].toLowerCase();
 
-        // 如果玩家已经通过交互选择了两个点
-        if (plugin.getRegionListener().getFirstPoints().containsKey(player) &&
-                plugin.getRegionListener().getSecondPoints().containsKey(player)) {
+        switch (subCommand) {
+            case "create":
+                if (!player.hasPermission("xiregionalrestriction.create")) {
+                    player.sendMessage(plugin.getMessage("no-permission", "你没有权限执行此命令！"));
+                    return false;
+                }
+                if (args.length < 2) {
+                    player.sendMessage(plugin.getMessage("command-usage", "用法: /xrr create <区域名称> 或 /xrr create <区域名称> <min-x> <min-z> <max-x> <max-z> [世界名]"));
+                    return false;
+                }
 
-            Location firstPoint = plugin.getRegionListener().getFirstPoints().get(player);
-            Location secondPoint = plugin.getRegionListener().getSecondPoints().get(player);
+                String regionName = args[1];
 
-            int minX = Math.min(firstPoint.getBlockX(), secondPoint.getBlockX());
-            int maxX = Math.max(firstPoint.getBlockX(), secondPoint.getBlockX());
-            int minZ = Math.min(firstPoint.getBlockZ(), secondPoint.getBlockZ());
-            int maxZ = Math.max(firstPoint.getBlockZ(), secondPoint.getBlockZ());
+                // 如果玩家已经通过交互选择了两个点
+                if (plugin.getRegionListener().getFirstPoints().containsKey(player) &&
+                        plugin.getRegionListener().getSecondPoints().containsKey(player)) {
 
-            String worldName = player.getWorld().getName();  // 默认使用玩家所在的世界
+                    Location firstPoint = plugin.getRegionListener().getFirstPoints().get(player);
+                    Location secondPoint = plugin.getRegionListener().getSecondPoints().get(player);
 
-            // 创建并保存区域配置
-            createRegionConfig(regionName, minX, minZ, maxX, maxZ, worldName);
+                    int minX = Math.min(firstPoint.getBlockX(), secondPoint.getBlockX());
+                    int maxX = Math.max(firstPoint.getBlockX(), secondPoint.getBlockX());
+                    int minZ = Math.min(firstPoint.getBlockZ(), secondPoint.getBlockZ());
+                    int maxZ = Math.max(firstPoint.getBlockZ(), secondPoint.getBlockZ());
 
-            // 提示玩家区域创建成功
-            player.sendMessage("区域 " + regionName + " 已成功创建！");
+                    String worldName = player.getWorld().getName();  // 默认使用玩家所在的世界
 
-            // 清除选定的坐标
-            plugin.getRegionListener().getFirstPoints().remove(player);
-            plugin.getRegionListener().getSecondPoints().remove(player);
+                    // 创建并保存区域配置
+                    createRegionConfig(regionName, minX, minZ, maxX, maxZ, worldName);
 
-            return true;
-        }
+                    // 提示玩家区域创建成功
+                    player.sendMessage(plugin.getMessage("region-created", "区域 {name} 创建成功！")
+                            .replace("{name}", regionName));
 
-        // 如果没有选择点，检查是否有手动输入坐标
-        if (args.length >= 6) {
-            try {
-                // 解析坐标
-                int minX = Integer.parseInt(args[2]);
-                int minZ = Integer.parseInt(args[3]);
-                int maxX = Integer.parseInt(args[4]);
-                int maxZ = Integer.parseInt(args[5]);
+                    // 清除选定的坐标
+                    plugin.getRegionListener().getFirstPoints().remove(player);
+                    plugin.getRegionListener().getSecondPoints().remove(player);
 
-                // 获取世界名，若未指定，则使用玩家当前世界
-                String worldName = (args.length > 6) ? args[6] : player.getWorld().getName();
+                    return true;
+                }
 
-                // 创建并保存区域配置
-                createRegionConfig(regionName, minX, minZ, maxX, maxZ, worldName);
+                // 如果没有选择点，检查是否有手动输入坐标
+                if (args.length >= 6) {
+                    try {
+                        // 解析坐标
+                        int minX = Integer.parseInt(args[2]);
+                        int minZ = Integer.parseInt(args[3]);
+                        int maxX = Integer.parseInt(args[4]);
+                        int maxZ = Integer.parseInt(args[5]);
 
-                // 提示玩家区域创建成功
-                player.sendMessage("区域 " + regionName + " 已成功创建！");
-                return true;
-            } catch (NumberFormatException e) {
-                player.sendMessage("坐标必须是有效的整数！");
+                        // 获取世界名，若未指定，则使用玩家当前世界
+                        String worldName = (args.length > 6) ? args[6] : player.getWorld().getName();
+
+                        // 创建并保存区域配置
+                        createRegionConfig(regionName, minX, minZ, maxX, maxZ, worldName);
+
+                        // 提示玩家区域创建成功
+                        player.sendMessage(plugin.getMessage("region-created", "区域 {name} 创建成功！")
+                                .replace("{name}", regionName));
+                        return true;
+                    } catch (NumberFormatException e) {
+                        player.sendMessage(plugin.getMessage("location-should-be-integer", "坐标必须是整数！"));
+                        return false;
+                    }
+                }
+
+                // 如果没有选择点也没有输入坐标，提示用户
+                player.sendMessage(plugin.getMessage("operation-error", "操作错误！"));
                 return false;
-            }
-        }
 
-        // 如果没有选择点也没有输入坐标，提示用户
-        player.sendMessage("请使用合适的用法来创建区域！");
-        return false;
+            case "reload":
+                // 检查玩家是否有权限
+                if (!player.hasPermission("xiregionalrestriction.reload")) {
+                    player.sendMessage(plugin.getMessage("no-permission", "你没有权限执行此命令！"));
+                    return false;
+                }
+
+                // 调用 reload 方法
+                plugin.reload();
+                player.sendMessage(plugin.getMessage("reload.success", "插件数据已成功重新加载！"));
+                return true;
+
+            default:
+                player.sendMessage(plugin.getMessage("command-usage", "用法: /xrr create <区域名称> 或 /xrr create <区域名称> <min-x> <min-z> <max-x> <max-z> [世界名] 或 /xrr reload"));
+                return false;
+        }
     }
 
 
@@ -104,7 +136,8 @@ public class RegionCommandExecutor implements CommandExecutor {
         // 使用 regionName 作为新的区域配置文件名
         File regionFile = new File(regionsFolder, regionName + ".yml");
         if (regionFile.exists()) {
-            throw new IllegalArgumentException("区域配置文件已存在！");
+            throw new IllegalArgumentException(plugin.getMessage("region-already-exists","区域 {region} 已经存在！")
+                    .replace("{region}", regionName));
         }
 
         // 从资源文件夹加载模板配置（example_region.yml）
@@ -129,7 +162,8 @@ public class RegionCommandExecutor implements CommandExecutor {
         try {
             config.save(regionFile);
         } catch (IOException e) {
-            plugin.getLogger().warning("无法保存区域配置文件 " + regionFile.getName());
+            plugin.getLogger().warning(plugin.getMessage("cannot-save-region","保存区域 {region} 时出错！")
+                    .replace("{region}", regionFile.getName()));
         }
 
         // 加载新的区域到内存

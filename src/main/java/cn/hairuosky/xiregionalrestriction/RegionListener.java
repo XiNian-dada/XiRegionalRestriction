@@ -63,23 +63,38 @@ public class RegionListener implements Listener {
 
         if (regionName != null) {
             Region region = plugin.getRegionByName(regionName);
-            if (region != null && !region.isAllowMove()) {
-                // 找到玩家上一次的安全位置并传送
-                Location safeLocation = playerLastSafeLocation.getOrDefault(player, to);
-                // 创建一个新的Location对象，使用上一次的安全位置的坐标，但保留当前的视角方向
-                Location teleportLocation = new Location(safeLocation.getWorld(), safeLocation.getX(), safeLocation.getY(), safeLocation.getZ(), player.getLocation().getYaw(), player.getLocation().getPitch());
-                player.teleport(teleportLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
-                player.sendMessage(plugin.getMessage("teleported-outside-restricted"));
-                // 更新玩家状态为不在受限区域
-                playerRegionStatus.put(player, "0");
-            } else {
-                // 更新玩家状态为当前区域
-                playerRegionStatus.put(player, regionName);
-                // 更新玩家上一次的安全位置
-                playerLastSafeLocation.put(player, to);
+            if (region != null) {
+                if (!region.isAllowMove() && region.lacksPermission(player, "move")) {
+                    // 找到玩家上一次的安全位置并传送
+                    Location safeLocation = playerLastSafeLocation.getOrDefault(player, to);
+                    // 创建一个新的Location对象，使用上一次的安全位置的坐标，但保留当前的视角方向
+                    Location teleportLocation = new Location(safeLocation.getWorld(), safeLocation.getX(), safeLocation.getY(), safeLocation.getZ(), player.getLocation().getYaw(), player.getLocation().getPitch());
+                    player.teleport(teleportLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    player.sendMessage(plugin.getMessage("teleported-outside-restricted", "这不是你该待的地方，爬出去！"));
+                    // 更新玩家状态为不在受限区域
+                    playerRegionStatus.put(player, "0");
+                } else {
+                    // 更新玩家状态为当前区域
+                    String previousRegion = playerRegionStatus.getOrDefault(player, "0");
+                    if (!regionName.equals(previousRegion)) {
+                        // 玩家进入新的受限区域
+                        player.sendMessage(plugin.getMessage("entered-region", "你进入了一个受限区域 {name}")
+                                .replace("{name}", regionName
+                                ));
+                    }
+                    playerRegionStatus.put(player, regionName);
+                    // 更新玩家上一次的安全位置
+                    playerLastSafeLocation.put(player, to);
+                }
             }
         } else {
             // 更新玩家状态为不在受限区域
+            String previousRegion = playerRegionStatus.getOrDefault(player, "0");
+            if (!"0".equals(previousRegion)) {
+                // 玩家离开受限区域
+                player.sendMessage(plugin.getMessage("left-region", "你离开了一个受限区域 {name}")
+                        .replace("{name}", previousRegion));
+            }
             playerRegionStatus.put(player, "0");
             // 更新玩家上一次的安全位置
             playerLastSafeLocation.put(player, to);
@@ -100,34 +115,36 @@ public class RegionListener implements Listener {
             if (action == Action.LEFT_CLICK_BLOCK) {
                 // 左键选择第一个点
                 firstPoints.put(player, event.getClickedBlock().getLocation());
-                player.sendMessage("已选择第一个点：" + event.getClickedBlock().getLocation().toString());
+                player.sendMessage(plugin.getMessage("first-position-set", "你设置了第一个位置: {location}")
+                        .replace("{location}", event.getClickedBlock().getLocation().toString()));
             } else if (action == Action.RIGHT_CLICK_BLOCK) {
                 // 右键选择第二个点
                 if (firstPoints.containsKey(player)) {
                     secondPoints.put(player, event.getClickedBlock().getLocation());
-                    player.sendMessage("已选择第二个点：" + event.getClickedBlock().getLocation().toString());
+                    player.sendMessage(plugin.getMessage("second-position-set", "你设置了第二个位置: {location}")
+                            .replace("{location}", event.getClickedBlock().getLocation().toString()));
 
                     // 生成粒子效果
                     startParticleEffect(player);
 
                 } else {
-                    player.sendMessage("请先选择第一个点！");
+                    player.sendMessage(plugin.getMessage("need-select-first-position", "请先选择第一个点！"));
                 }
             }
         }
     }
+
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         Location blockLocation = event.getBlock().getLocation();
 
-
         // 检查方块是否在受限区域内
         for (Region region : plugin.getRegions()) {
             if (region.isInside(blockLocation)) {
-                if (!region.isAllowBreakBlocks()) {
+                if (!region.isAllowBreakBlocks() && region.lacksPermission(player, "break-blocks")) {
                     event.setCancelled(true);  // 禁止破坏
-                    player.sendMessage(plugin.getMessage("region-cannot-break"));
+                    player.sendMessage(plugin.getMessage("region-break-restricted", "你不能在此区域破坏方块！"));
                     return;  // 退出方法，避免进一步处理
                 }
             }
@@ -142,9 +159,9 @@ public class RegionListener implements Listener {
         // 检查方块是否在受限区域内
         for (Region region : plugin.getRegions()) {
             if (region.isInside(blockLocation)) {
-                if (!region.isAllowPlaceBlocks()) {
+                if (!region.isAllowPlaceBlocks() && region.lacksPermission(player, "place-blocks")) {
                     event.setCancelled(true);  // 禁止放置
-                    player.sendMessage(plugin.getMessage("region-cannot-place"));
+                    player.sendMessage(plugin.getMessage("region-place-restricted", "你不能在此区域放置方块！"));
                     return;  // 退出方法，避免进一步处理
                 }
             }
@@ -162,7 +179,6 @@ public class RegionListener implements Listener {
         Material blockType = clickedBlock.getType();
 
         // 定义需要处理的红石器件和容器类型
-        // 使用 EnumSet 替代 Set.of()
         Set<Material> INTERACTABLE_MATERIALS = EnumSet.of(
                 Material.STONE_PRESSURE_PLATE, Material.OAK_PRESSURE_PLATE, Material.SPRUCE_PRESSURE_PLATE,
                 Material.BIRCH_PRESSURE_PLATE, Material.JUNGLE_PRESSURE_PLATE, Material.ACACIA_PRESSURE_PLATE,
@@ -185,7 +201,6 @@ public class RegionListener implements Listener {
                 Material.WHITE_SHULKER_BOX, Material.YELLOW_SHULKER_BOX
         );
 
-
         // 检查点击的方块是否在需要处理的类型中
         if (!INTERACTABLE_MATERIALS.contains(blockType)) {
             return;  // 如果不是需要处理的方块类型，直接返回
@@ -197,9 +212,9 @@ public class RegionListener implements Listener {
         for (Region region : plugin.getRegions()) {
             if (region.isInside(blockLocation)) {
                 // 判断配置文件中的方块交互限制
-                if (!region.isAllowInteractBlocks()) {
+                if (!region.isAllowInteractBlocks() && region.lacksPermission(player, "interact-blocks")) {
                     event.setCancelled(true);  // 禁止与方块交互
-                    player.sendMessage(plugin.getMessage("region-cannot-interact-block"));
+                    player.sendMessage(plugin.getMessage("region-cannot-interact-block", "你不能在此区域与方块进行交互！"));
                     return;  // 退出方法，避免进一步处理
                 }
             }
@@ -208,9 +223,9 @@ public class RegionListener implements Listener {
         // 检查玩家是否在限制区域内，并判断是否允许使用物品
         for (Region region : plugin.getRegions()) {
             if (region.isInside(player.getLocation())) {
-                if (!region.isAllowInteractItems() && event.getItem() != null) {
+                if (!region.isAllowInteractItems() && event.getItem() != null && region.lacksPermission(player, "interact-items")) {
                     event.setCancelled(true);  // 禁止使用物品
-                    player.sendMessage(plugin.getMessage("region-cannot-interact-item"));
+                    player.sendMessage(plugin.getMessage("region-cannot-interact-item", "你不能在此区域使用此物品！"));
                 }
             }
         }
@@ -225,16 +240,17 @@ public class RegionListener implements Listener {
         for (Region region : plugin.getRegions()) {
             if (region.isInside(entity.getLocation())) {
                 // 判断配置文件中的实体交互限制
-                if (!region.isAllowInteractEntities()) {
-                    event.setCancelled(true);  // 禁止与实体交互
-                    if (entity instanceof Player) {
-                        Player player = (Player) entity;
-                        player.sendMessage(plugin.getMessage("region-cannot-interact-entity"));
+                if (!region.isAllowInteractEntities() && entity instanceof Player) {
+                    Player player = (Player) entity;
+                    if (region.lacksPermission(player, "interact-entities")) {
+                        event.setCancelled(true);  // 禁止与实体交互
+                        player.sendMessage(plugin.getMessage("region-cannot-interact-entity", "你不能在此区域与实体进行交互！"));
                     }
                 }
             }
         }
     }
+
 
 
 
@@ -293,7 +309,7 @@ public class RegionListener implements Listener {
         Location secondPoint = secondPoints.get(player);
 
         if (firstPoint == null || secondPoint == null) {
-            plugin.getLogger().warning("粒子效果生成任务启动失败：firstPoint 或 secondPoint 为 null");
+            plugin.getLogger().warning(plugin.getMessage("particle-spawn-error","粒子效果生成任务启动失败：firstPoint 或 secondPoint 为 null"));
             return;  // 如果 firstPoint 或 secondPoint 为 null，直接返回
         }
 
@@ -309,11 +325,11 @@ public class RegionListener implements Listener {
 
                 if (currentFirstPoint == null || currentSecondPoint == null) {
                     cancel();  // 如果 firstPoint 或 secondPoint 为 null，取消任务
-                    plugin.getLogger().warning("粒子效果生成任务取消：firstPoint 或 secondPoint 为 null");
+                    plugin.getLogger().warning(plugin.getMessage("particle-spawn-cancel","粒子效果生成任务取消：firstPoint 或 secondPoint 为 null"));
                     return;
                 }
 
-                if (counter < 20) {
+                if (counter < 10) {
                     // 生成粒子效果
                     spawnParticleEffect(player, currentFirstPoint, currentSecondPoint);
                     counter++;
@@ -322,7 +338,7 @@ public class RegionListener implements Listener {
                     cancel();
                 }
             }
-        }.runTaskTimer(plugin, 0L, 20L);  // 0L 延迟0个tick执行，20L 每20tick执行一次（即每秒1次）
+        }.runTaskTimer(plugin, 0L, 40L);  // 0L 延迟0个tick执行，20L 每20tick执行一次（即每秒1次）
     }
 
 

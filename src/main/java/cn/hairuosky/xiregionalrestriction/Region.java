@@ -1,6 +1,7 @@
 package cn.hairuosky.xiregionalrestriction;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 
 public class Region {
@@ -46,25 +47,6 @@ public class Region {
         boolean isInZRange = (location.getZ() >= Math.min(minZ, maxZ)) && (location.getZ() <= Math.max(minZ, maxZ));
 
         return location.getWorld().getName().equals(worldName) && isInXRange && isInZRange;
-    }
-
-    // 返回区域的边界作为一个BoundingBox
-    public BoundingBox getBoundingBox() {
-        return new BoundingBox(Math.min(minX, maxX), 0, Math.min(minZ, maxZ),
-                Math.max(minX, maxX), 256, Math.max(minZ, maxZ));  // 高度为 0 到 256，可以根据需要调整
-    }
-
-    // 获取区域外的一个安全位置，假设返回的安全位置在区域外10格
-    public Location getSafeLocationOutside(Location currentLocation) {
-        double playerX = currentLocation.getX();
-        double playerZ = currentLocation.getZ();
-
-        double safeX = playerX > maxX ? playerX + 10 : (playerX < minX ? playerX - 10 : playerX);
-        double safeZ = playerZ > maxZ ? playerZ + 10 : (playerZ < minZ ? playerZ - 10 : playerZ);
-        double safeY = currentLocation.getY();  // 保持 Y 不变
-
-        // 创建安全位置
-        return new Location(currentLocation.getWorld(), safeX, safeY, safeZ);
     }
 
     // Getter方法
@@ -121,5 +103,10 @@ public class Region {
     public String toString() {
         return String.format("Region{name='%s', world='%s', minX=%d, maxX=%d, minZ=%d, maxZ=%d, allowBreakBlocks=%b, allowPlaceBlocks=%b, allowMove=%b, allowInteractEntities=%b, allowInteractBlocks=%b, allowInteractItems=%b}",
                 name, worldName, minX, maxX, minZ, maxZ, allowBreakBlocks, allowPlaceBlocks, allowMove, allowInteractEntities, allowInteractBlocks, allowInteractItems);
+    }
+
+    // 权限检查方法
+    public boolean lacksPermission(Player player, String action) {
+        return !player.hasPermission("xiregionalrestriction.region." + name + "." + action);
     }
 }

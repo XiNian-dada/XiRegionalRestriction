@@ -5,6 +5,33 @@ api-version: '1.16'
 commands:
   xiregionalrestriction:
     permission: xiregionalrestriction.command
-    permission-message: '&c你没有权限执行此命令'
     aliases:
       - xrr
+permissions:
+  xiregionalrestriction.command:
+    description: Allows the player to use the xiregionalrestriction command.
+    default: op
+  xiregionalrestriction.reload:
+    description: Allows the player to reload the plugin configuration.
+    default: op
+  xiregionalrestriction.create:
+    description: Allows the player to create regions.
+    default: op
+  xiregionalrestriction.region.*.break-blocks:
+    description: Allows the player to break blocks in any region.
+    default: op
+  xiregionalrestriction.region.*.place-blocks:
+    description: Allows the player to place blocks in any region.
+    default: op
+  xiregionalrestriction.region.*.move:
+    description: Allows the player to move in any region.
+    default: op
+  xiregionalrestriction.region.*.interact-entities:
+    description: Allows the player to interact with entities in any region.
+    default: op
+  xiregionalrestriction.region.*.interact-blocks:
+    description: Allows the player to interact with blocks in any region.
+    default: op
+  xiregionalrestriction.region.*.interact-items:
+    description: Allows the player to use items in any region.
+    default: op
