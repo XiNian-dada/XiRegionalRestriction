@@ -22,3 +22,6 @@ particle-spawn-error: "粒子效果生成任务启动失败：firstPoint 或 sec
 particle-spawn-cancel: "粒子效果生成任务取消：firstPoint 或 secondPoint 为 null"
 command-usage: "用法: /xrr create <区域名称> 或 /xrr create <区域名称> <min-x> <min-z> <max-x> <max-z> [世界名]"
 no-permission: "你没有权限执行此命令！"
+region-deleted: "区域 {name} 删除成功！"
+cannot-delete-region: "删除区域 {region} 时出错！"
+cannot-create-directory: "无法创建目录 {directory}！"

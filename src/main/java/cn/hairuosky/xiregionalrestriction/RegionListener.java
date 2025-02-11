@@ -15,7 +15,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.BoundingBox;
 
 import java.util.*;
 
@@ -23,17 +22,16 @@ public class RegionListener implements Listener {
 
     private final XiRegionalRestriction plugin;
     private final Map<Player, String> playerRegionStatus = new HashMap<>();  // 缓存玩家的区域状态
-    private Map<Player, Location> firstPoints = new HashMap<>();
-    private Map<Player, Location> secondPoints = new HashMap<>();
-    private int n = 3;
+    private final Map<Player, Location> firstPoints = new HashMap<>();
+    private final Map<Player, Location> secondPoints = new HashMap<>();
 
     public RegionListener(XiRegionalRestriction plugin) {
         this.plugin = plugin;
     }
 
-    private Map<Player, Integer> playerMoveCounter = new HashMap<>();  // 用于存储每个玩家的移动次数
+    private final Map<Player, Integer> playerMoveCounter = new HashMap<>();  // 用于存储每个玩家的移动次数
 
-    private Map<Player, Location> playerLastSafeLocation = new HashMap<>();  // 用于存储每个玩家上一次的安全位置
+    private final Map<Player, Location> playerLastSafeLocation = new HashMap<>();  // 用于存储每个玩家上一次的安全位置
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
@@ -44,6 +42,7 @@ public class RegionListener implements Listener {
         int moveCount = playerMoveCounter.getOrDefault(player, 0);
 
         // 如果计数器未达到指定次数n，则跳过区域检查
+        int n = 3;
         if (moveCount < n) {
             playerMoveCounter.put(player, moveCount + 1); // 增加计数器
             return;  // 跳过本次区域检查
@@ -110,19 +109,25 @@ public class RegionListener implements Listener {
 
         // 检查玩家是否手持指定物品，这里以钻石作为示例
         if (itemInHand.getType() == Material.DIAMOND) {
-            event.setCancelled(true);  // 防止破坏方块
+            event.setCancelled(true);  // 防止破坏
+
+            Block clickedBlock = event.getClickedBlock();
+            if (clickedBlock == null) {
+                player.sendMessage(plugin.getMessage("invalid-click", "你点击的不是方块！"));
+                return;
+            }
 
             if (action == Action.LEFT_CLICK_BLOCK) {
                 // 左键选择第一个点
-                firstPoints.put(player, event.getClickedBlock().getLocation());
+                firstPoints.put(player, clickedBlock.getLocation());
                 player.sendMessage(plugin.getMessage("first-position-set", "你设置了第一个位置: {location}")
-                        .replace("{location}", event.getClickedBlock().getLocation().toString()));
+                        .replace("{location}", clickedBlock.getLocation().toString()));
             } else if (action == Action.RIGHT_CLICK_BLOCK) {
                 // 右键选择第二个点
                 if (firstPoints.containsKey(player)) {
-                    secondPoints.put(player, event.getClickedBlock().getLocation());
+                    secondPoints.put(player, clickedBlock.getLocation());
                     player.sendMessage(plugin.getMessage("second-position-set", "你设置了第二个位置: {location}")
-                            .replace("{location}", event.getClickedBlock().getLocation().toString()));
+                            .replace("{location}", clickedBlock.getLocation().toString()));
 
                     // 生成粒子效果
                     startParticleEffect(player);
@@ -294,14 +299,6 @@ public class RegionListener implements Listener {
             }
         }
 
-        // 生成四个水平边的粒子
-        /*for (int x = minX; x <= maxX; x++) {
-            for (int z = minZ; z <= maxZ; z++) {
-                // 在Y坐标的上下边界位置生成粒子
-                world.spawnParticle(Particle.VILLAGER_HAPPY, x + 0.5, minY + 0.5, z + 0.5, 1);
-                world.spawnParticle(Particle.VILLAGER_HAPPY, x + 0.5, maxY + 0.5, z + 0.5, 1);
-            }
-        }*/
     }
     private void startParticleEffect(Player player) {
         // 检查 firstPoint 和 secondPoint 是否为 null

@@ -2,7 +2,7 @@ package cn.hairuosky.xiregionalrestriction;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.util.BoundingBox;
+
 
 public class Region {
 

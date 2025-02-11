@@ -17,6 +17,9 @@ permissions:
   xiregionalrestriction.create:
     description: Allows the player to create regions.
     default: op
+  xiregionalrestriction.delete:
+    description: Allows the player to delete regions.
+    default: op
   xiregionalrestriction.region.*.break-blocks:
     description: Allows the player to break blocks in any region.
     default: op

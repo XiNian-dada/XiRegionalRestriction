@@ -105,7 +105,28 @@ public class RegionCommandExecutor implements CommandExecutor {
                 // 如果没有选择点也没有输入坐标，提示用户
                 player.sendMessage(plugin.getMessage("operation-error", "操作错误！"));
                 return false;
+            case "delete":
+                // 检查玩家是否有权限
+                if (!player.hasPermission("xiregionalrestriction.delete")) {
+                    player.sendMessage(plugin.getMessage("no-permission", "你没有权限执行此命令！"));
+                    return false;
+                }
+                if (args.length < 2) {
+                    player.sendMessage(plugin.getMessage("command-usage", "用法: /xrr delete <区域名称>"));
+                    return false;
+                }
 
+                String deleteRegionName = args[1];
+
+                // 删除区域配置文件
+                if (deleteRegion(deleteRegionName,(Player) sender)) {
+                    player.sendMessage(plugin.getMessage("region-deleted", "区域 {name} 删除成功！")
+                            .replace("{name}", deleteRegionName));
+                } else {
+                    player.sendMessage(plugin.getMessage("region-not-found", "区域 {name} 未找到！")
+                            .replace("{name}", deleteRegionName));
+                }
+                return true;
             case "reload":
                 // 检查玩家是否有权限
                 if (!player.hasPermission("xiregionalrestriction.reload")) {
@@ -127,16 +148,24 @@ public class RegionCommandExecutor implements CommandExecutor {
 
 
     // 创建并保存区域配置文件
+// 创建并保存区域配置文件
     private void createRegionConfig(String regionName, int minX, int minZ, int maxX, int maxZ, String worldName) {
         File regionsFolder = new File(plugin.getDataFolder(), "regions");
+
+        // 检查并创建目录
         if (!regionsFolder.exists()) {
-            regionsFolder.mkdirs();
+            boolean created = regionsFolder.mkdirs();
+            if (!created) {
+                plugin.getLogger().warning(plugin.getMessage("cannot-create-directory", "无法创建目录 {directory}！")
+                        .replace("{directory}", regionsFolder.getAbsolutePath()));
+                return;
+            }
         }
 
         // 使用 regionName 作为新的区域配置文件名
         File regionFile = new File(regionsFolder, regionName + ".yml");
         if (regionFile.exists()) {
-            throw new IllegalArgumentException(plugin.getMessage("region-already-exists","区域 {region} 已经存在！")
+            throw new IllegalArgumentException(plugin.getMessage("region-already-exists", "区域 {region} 已经存在！")
                     .replace("{region}", regionName));
         }
 
@@ -162,14 +191,40 @@ public class RegionCommandExecutor implements CommandExecutor {
         try {
             config.save(regionFile);
         } catch (IOException e) {
-            plugin.getLogger().warning(plugin.getMessage("cannot-save-region","保存区域 {region} 时出错！")
+            plugin.getLogger().warning(plugin.getMessage("cannot-save-region", "保存区域 {region} 时出错！")
                     .replace("{region}", regionFile.getName()));
         }
 
         // 加载新的区域到内存
-        Region region = new Region(regionName, worldName, minX, maxX, minZ, maxZ,true,true,true,true,true,true);
+        Region region = new Region(regionName, worldName, minX, maxX, minZ, maxZ, true, true, true, true, true, true);
         plugin.getRegions().add(region);
     }
 
+    // 删除区域配置文件并从内存中移除
+    private boolean deleteRegion(String regionName,Player sender) {
+        File regionsFolder = new File(plugin.getDataFolder(), "regions");
+        if (!regionsFolder.exists()) {
+            return false;
+        }
+
+        // 使用 regionName 作为区域配置文件名
+        File regionFile = new File(regionsFolder, regionName + ".yml");
+        if (!regionFile.exists()) {
+            return false;
+        }
+
+        // 删除文件
+        if (!regionFile.delete()) {
+            plugin.getLogger().warning(plugin.getMessage("cannot-delete-region","删除区域 {region} 时出错！")
+                    .replace("{region}", regionFile.getName()));
+            return false;
+        }
+
+        // 从内存中移除相应的 Region 对象
+        plugin.getRegions().removeIf(region -> region.getName().equalsIgnoreCase(regionName));
+        sender.sendMessage(plugin.getMessage("region-deleted", "区域 {name} 删除成功！")
+                .replace("{name}", regionName));
+        return true;
+    }
 
 }

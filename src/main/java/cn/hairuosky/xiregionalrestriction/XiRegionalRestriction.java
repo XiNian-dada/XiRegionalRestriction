@@ -1,6 +1,7 @@
 package cn.hairuosky.xiregionalrestriction;
 
 import org.bukkit.ChatColor;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -8,7 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 //TODO 性能审查
 //TODO CONFIG.yml
 //TODO TAB COMPLETER 指令
-//TODO PERMISSION
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
 public final class XiRegionalRestriction extends JavaPlugin implements Listener {
 
     // 存储所有区域的列表
-    private List<Region> regions = new ArrayList<>();
+    private final List<Region> regions = new ArrayList<>();
     private RegionListener regionListener;
     private YamlConfiguration messagesConfig;
     public String prefix;
@@ -29,11 +29,16 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
         saveResource("messages.yml", false);
         // 加载 messages.yml 文件
         loadMessages();
-        prefix = ChatColor.translateAlternateColorCodes('&',getConfig().getString("prefix","&7[&6区域限制&7]"));
+        prefix = ChatColor.translateAlternateColorCodes('&', getConfig().getString("prefix", "&7[&6区域限制&7]"));
+
         // 创建 regions 文件夹，如果不存在则创建
         File regionsFolder = new File(getDataFolder(), "regions");
         if (!regionsFolder.exists()) {
-            regionsFolder.mkdirs();
+            if (regionsFolder.mkdirs()) {
+                getLogger().info("成功创建 regions 文件夹！");
+            } else {
+                getLogger().warning("创建 regions 文件夹失败！");
+            }
         }
 
         // 加载区域数据
@@ -42,12 +47,18 @@ public final class XiRegionalRestriction extends JavaPlugin implements Listener 
         regionListener = new RegionListener(this);
         getServer().getPluginManager().registerEvents(regionListener, this);
 
-
         // 注册命令处理器
-        getCommand("xrr").setExecutor(new RegionCommandExecutor(this));
+        PluginCommand xirrCommand = getCommand("xiregionalrestriction");
+        if (xirrCommand != null) {
+            xirrCommand.setExecutor(new RegionCommandExecutor(this));
+            xirrCommand.setTabCompleter(new RegionTabCompleter(this));
+        } else {
+            getLogger().warning("命令 'xiregionalrestriction' 未找到！");
+        }
 
         getLogger().info("XiRegionalRestriction 插件已启用！");
     }
+
     // 重新加载插件数据
     public void reload() {
         // 重新加载 config.yml 文件
