@@ -7,8 +7,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 //TODO 性能审查
-//TODO CONFIG.yml
-//TODO TAB COMPLETER 指令
+//TODO CONFIG.yml -> 应该添加更多配置项吧，但我也不知道加什么....比如延迟之类的?
+//TODO
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
